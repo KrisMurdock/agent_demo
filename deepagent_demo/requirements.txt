@@ -1,0 +1,5 @@
+deepagents>=0.6
+langchain-openai>=0.3
+duckduckgo-search>=7.0
+python-dotenv>=1.1
+rich>=14.0
