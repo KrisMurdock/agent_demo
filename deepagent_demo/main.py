@@ -20,44 +20,56 @@ MessageType = {
 
 
 def print_event(event: dict):
-    messages = event.get("messages", [])
-    for msg in messages:
-        msg_type = type(msg).__name__
-        label = MessageType.get(msg_type.lower(), msg_type)
+    for node_name, node_output in event.items():
+        if node_output is None:
+            continue
 
-        if isinstance(msg, HumanMessage):
-            console.print(f"\n[bold yellow]{'='*60}[/bold yellow]")
-            console.print(f"[bold yellow]  [User Input][/bold yellow]")
-            console.print(f"[bold yellow]{'='*60}[/bold yellow]")
-            console.print(f"  {msg.content}")
-            console.print(f"[bold yellow]{'='*60}[/bold yellow]")
+        if not isinstance(node_output, dict):
+            continue
 
-        elif isinstance(msg, AIMessage):
-            if msg.content:
-                console.print(f"\n[bold cyan]{'='*60}[/bold cyan]")
-                console.print(f"[bold cyan]  [Orchestrator][/bold cyan]")
-                console.print(f"[bold cyan]{'='*60}[/bold cyan]")
-                console.print(Markdown(msg.content))
-                console.print(f"[bold cyan]{'='*60}[/bold cyan]")
+        messages = node_output.get("messages", [])
+        if not messages:
+            continue
 
-            if msg.tool_calls:
-                for tc in msg.tool_calls:
-                    tool_name = tc.get("name", "unknown")
-                    args = tc.get("args", {})
-                    console.print(f"\n[bold magenta]  -> Delegating to: {tool_name}[/bold magenta]")
-                    if "task_description" in args:
-                        console.print(f"[dim]     Task: {args['task_description'][:100]}...[/dim]")
-                    elif "query" in args:
-                        console.print(f"[dim]     Query: {args['query']}[/dim]")
-                    elif "code" in args:
-                        code_preview = args["code"][:80].replace("\n", " ")
-                        console.print(f"[dim]     Code: {code_preview}...[/dim]")
+        for msg in messages:
+            msg_type = type(msg).__name__
+            label = MessageType.get(msg_type.lower(), msg_type)
 
-        elif isinstance(msg, ToolMessage):
-            content = msg.content if isinstance(msg.content, str) else str(msg.content)
-            preview = content[:200].replace("\n", " ")
-            console.print(f"\n[green]  <- Tool result ({msg.name}):[/green]")
-            console.print(f"[dim]     {preview}...[/dim]")
+            if isinstance(msg, HumanMessage):
+                console.print(f"\n[bold yellow]{'='*60}[/bold yellow]")
+                console.print(f"[bold yellow]  [User Input][/bold yellow]")
+                console.print(f"[bold yellow]{'='*60}[/bold yellow]")
+                console.print(f"  {msg.content}")
+                console.print(f"[bold yellow]{'='*60}[/bold yellow]")
+
+            elif isinstance(msg, AIMessage):
+                if msg.content:
+                    console.print(f"\n[bold cyan]{'='*60}[/bold cyan]")
+                    console.print(f"[bold cyan]  [Orchestrator][/bold cyan]")
+                    console.print(f"[bold cyan]{'='*60}[/bold cyan]")
+                    console.print(Markdown(msg.content))
+                    console.print(f"[bold cyan]{'='*60}[/bold cyan]")
+
+                if msg.tool_calls:
+                    for tc in msg.tool_calls:
+                        tool_name = tc.get("name", "unknown")
+                        args = tc.get("args", {})
+                        console.print(f"\n[bold magenta]  -> Delegating to: {tool_name}[/bold magenta]")
+                        if "description" in args:
+                            console.print(f"[dim]     Task: {args['description'][:100]}...[/dim]")
+                        elif "subagent_type" in args:
+                            console.print(f"[dim]     Subagent: {args['subagent_type']}[/dim]")
+                        elif "query" in args:
+                            console.print(f"[dim]     Query: {args['query']}[/dim]")
+                        elif "code" in args:
+                            code_preview = args["code"][:80].replace("\n", " ")
+                            console.print(f"[dim]     Code: {code_preview}...[/dim]")
+
+            elif isinstance(msg, ToolMessage):
+                content = msg.content if isinstance(msg.content, str) else str(msg.content)
+                preview = content[:200].replace("\n", " ")
+                console.print(f"\n[green]  <- Tool result ({msg.name}):[/green]")
+                console.print(f"[dim]     {preview}...[/dim]")
 
 
 def run_query(query: str, agent):

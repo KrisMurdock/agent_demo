@@ -6,11 +6,10 @@ load_dotenv()
 
 
 def get_model():
-    from langchain.chat_models import init_chat_model
+    from langchain_openai import ChatOpenAI
 
-    return init_chat_model(
+    return ChatOpenAI(
         model=os.getenv("MODEL_NAME", "gpt-4o"),
-        model_provider="openai",
         api_key=os.getenv("OPENAI_API_KEY", "sk-placeholder"),
         base_url=os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1"),
         temperature=float(os.getenv("TEMPERATURE", "0.7")),
